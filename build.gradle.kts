@@ -24,8 +24,23 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    create("integrationTest") {
+        compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+val integrationTestImplementation: Configuration by configurations.getting {
+    extendsFrom(configurations.testImplementation.get())
+}
+val integrationTestRuntimeOnly: Configuration by configurations.getting {
+    extendsFrom(configurations.testRuntimeOnly.get())
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+    implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
 
@@ -38,6 +53,8 @@ dependencies {
     testImplementation("io.kotest:kotest-framework-datatest:5.9.1")
     testImplementation("io.kotest.extensions:kotest-extensions-spring:1.3.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    integrationTestImplementation("org.testcontainers:elasticsearch:1.20.4")
 }
 
 kotlin {
@@ -54,18 +71,12 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-sourceSets {
-    create("integrationTest") {
-        compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
-        runtimeClasspath += output + compileClasspath
-    }
-}
-
-val integrationTestImplementation: Configuration by configurations.getting {
-    extendsFrom(configurations.testImplementation.get())
-}
-val integrationTestRuntimeOnly: Configuration by configurations.getting {
-    extendsFrom(configurations.testRuntimeOnly.get())
+kotlin.target.compilations {
+    val main = getByName("main")
+    val test = getByName("test")
+    val integrationTest = getByName("integrationTest")
+    integrationTest.associateWith(main)
+    integrationTest.associateWith(test)
 }
 
 tasks.register<Test>("integrationTest") {

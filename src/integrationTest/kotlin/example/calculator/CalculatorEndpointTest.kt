@@ -1,6 +1,6 @@
 package example.calculator
 
-import io.kotest.core.spec.style.FunSpec
+import example.web.IntegrationSpec
 import io.kotest.extensions.spring.SpringExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.client.expectBody
 @AutoConfigureRestTestClient
 class CalculatorEndpointTest(
     @Autowired private val restClient: RestTestClient,
-) : FunSpec({
+) : IntegrationSpec({
         extension(SpringExtension)
 
         test("should return calculated result for valid expression") {

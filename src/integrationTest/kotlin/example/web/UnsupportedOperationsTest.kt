@@ -1,6 +1,5 @@
 package example.web
 
-import io.kotest.core.spec.style.FunSpec
 import io.kotest.extensions.spring.SpringExtension
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
@@ -13,7 +12,7 @@ import org.springframework.test.web.servlet.client.expectBody
 @AutoConfigureRestTestClient
 class UnsupportedOperationsTest(
     @Autowired private val restClient: RestTestClient,
-) : FunSpec({
+) : IntegrationSpec({
         extension(SpringExtension)
 
         test("should return expected error for unsupported request") {

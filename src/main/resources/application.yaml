@@ -5,3 +5,7 @@ spring:
     error:
       whitelabel:
         enabled: false
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URI:http://localhost:9200}
+    connection-timeout: 2s
+    socket-timeout: 5s

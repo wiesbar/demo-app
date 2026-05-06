@@ -1,32 +1,44 @@
 package example.web
 
 import example.calculator.InvalidArithmeticExpressionException
+import example.catalog.InvalidProductException
+import example.catalog.ProductNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+
+private typealias ErrorBody = ResponseEntity<Map<String, String?>>
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
     @ExceptionHandler(InvalidArithmeticExpressionException::class)
-    internal fun handleBadRequest(ex: InvalidArithmeticExpressionException): ResponseEntity<Map<String, String?>> {
-        val errorBody =
-            mapOf(
-                "status" to "400",
-                "error" to "Bad Request",
-                "message" to ex.message,
-            )
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorBody)
+    internal fun handleInvalidExpression(ex: InvalidArithmeticExpressionException): ErrorBody = badRequest(ex.message)
+
+    @ExceptionHandler(InvalidProductException::class)
+    internal fun handleInvalidProduct(ex: InvalidProductException): ErrorBody = badRequest(ex.message)
+
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handleUnreadableBody(ex: HttpMessageNotReadableException): ErrorBody {
+        val message = ex.mostSpecificCause.message ?: ex.message
+        return badRequest(message)
+    }
+
+    @ExceptionHandler(ProductNotFoundException::class)
+    internal fun handleNotFound(ex: ProductNotFoundException): ErrorBody {
+        val body = mapOf("status" to "404", "error" to "Not Found", "message" to ex.message)
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body)
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleGeneralError(ex: Exception): ResponseEntity<Map<String, String?>> {
-        val errorBody =
-            mapOf(
-                "status" to "500",
-                "error" to "Internal Server Error",
-                "message" to ex.message,
-            )
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorBody)
+    fun handleGeneralError(ex: Exception): ErrorBody {
+        val body = mapOf("status" to "500", "error" to "Internal Server Error", "message" to ex.message)
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body)
     }
+}
+
+private fun badRequest(message: String?): ErrorBody {
+    val body = mapOf("status" to "400", "error" to "Bad Request", "message" to message)
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body)
 }
