@@ -3,6 +3,7 @@ package example.web
 import example.calculator.InvalidArithmeticExpressionException
 import example.catalog.InvalidProductException
 import example.catalog.ProductNotFoundException
+import kotlinx.coroutines.CancellationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -30,6 +31,9 @@ class GlobalExceptionHandler {
         val body = mapOf("status" to "404", "error" to "Not Found", "message" to ex.message)
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body)
     }
+
+    @ExceptionHandler(CancellationException::class)
+    fun handleCancellation(ex: CancellationException): Nothing = throw ex
 
     @ExceptionHandler(Exception::class)
     fun handleGeneralError(ex: Exception): ErrorBody {

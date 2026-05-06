@@ -20,7 +20,7 @@ class CatalogController internal constructor(
     private val searchEngine: FurnitureSearchEngine,
 ) {
     @PutMapping("/products/{id}")
-    fun put(
+    suspend fun put(
         @PathVariable id: String,
         @RequestBody body: ProductDto,
     ): ResponseEntity<Void> {
@@ -29,7 +29,7 @@ class CatalogController internal constructor(
     }
 
     @DeleteMapping("/products/{id}")
-    fun delete(
+    suspend fun delete(
         @PathVariable id: String,
     ): ResponseEntity<Void> {
         if (id.isBlank()) throw InvalidProductException("product id must not be blank")
@@ -38,7 +38,7 @@ class CatalogController internal constructor(
     }
 
     @GetMapping("/products/search")
-    fun search(
+    suspend fun search(
         @RequestParam q: String,
         @RequestParam(required = false) category: Category?,
         @RequestParam(required = false, defaultValue = "20") size: Int,

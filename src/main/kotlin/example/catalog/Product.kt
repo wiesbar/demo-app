@@ -29,7 +29,7 @@ internal data class SearchHit(
 )
 
 internal interface FurnitureSearchEngine {
-    fun search(
+    suspend fun search(
         query: String,
         category: Category? = null,
         size: Int = 20,
@@ -37,7 +37,7 @@ internal interface FurnitureSearchEngine {
 }
 
 internal interface FurnitureIndexer {
-    fun index(product: Product)
+    suspend fun index(product: Product)
 
-    fun deleteIfExists(id: String): Boolean
+    suspend fun deleteIfExists(id: String): Boolean
 }

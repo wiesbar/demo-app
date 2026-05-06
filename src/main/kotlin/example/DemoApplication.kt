@@ -5,6 +5,7 @@ import example.calculator.DefaultArithmeticExpressionCalculator
 import example.catalog.FurnitureRepository
 import example.catalog.ProductQueryBuilder
 import example.catalog.ProductSerializer
+import kotlinx.coroutines.Dispatchers
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.context.annotation.Bean
@@ -27,7 +28,7 @@ class DemoApplication {
         template: ElasticsearchOperations,
         productSerializer: ProductSerializer,
         productQueryBuilder: ProductQueryBuilder,
-    ) = FurnitureRepository(template, productSerializer, productQueryBuilder)
+    ) = FurnitureRepository(template, productSerializer, productQueryBuilder, Dispatchers.IO)
 }
 
 @Suppress("SpreadOperator")
