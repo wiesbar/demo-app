@@ -19,19 +19,21 @@ internal class IndexInitializer(
     }
 }
 
-internal const val FURNITURE_MAPPING_JSON: String = """
-{
-  "properties": {
-    "category":    { "type": "keyword" },
-    "name":        { "type": "text", "fields": { "keyword": { "type": "keyword" } } },
-    "description": { "type": "text", "analyzer": "english" },
-    "dimensions": {
+internal val FURNITURE_MAPPING_JSON: String =
+    """
+    {
       "properties": {
-        "width":  { "properties": { "value": { "type": "integer" }, "unit": { "type": "keyword" } } },
-        "height": { "properties": { "value": { "type": "integer" }, "unit": { "type": "keyword" } } },
-        "depth":  { "properties": { "value": { "type": "integer" }, "unit": { "type": "keyword" } } }
+        "category":    { "type": "keyword" },
+        "name":        { "type": "text", "fields": { "keyword": { "type": "keyword" } } },
+        "description": { "type": "text", "analyzer": "english" },
+        "embedding":   { "type": "dense_vector", "dims": ${EmbeddingVocabulary.size}, "similarity": "cosine" },
+        "dimensions": {
+          "properties": {
+            "width":  { "properties": { "value": { "type": "integer" }, "unit": { "type": "keyword" } } },
+            "height": { "properties": { "value": { "type": "integer" }, "unit": { "type": "keyword" } } },
+            "depth":  { "properties": { "value": { "type": "integer" }, "unit": { "type": "keyword" } } }
+          }
+        }
       }
     }
-  }
-}
-"""
+    """.trimIndent()

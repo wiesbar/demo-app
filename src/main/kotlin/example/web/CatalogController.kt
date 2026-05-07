@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
@@ -45,7 +46,18 @@ class CatalogController internal constructor(
     ): SearchResponseDto {
         validateQuery(q, size)
         val hits = searchEngine.search(q, category, size).map { it.toDto() }
-        return SearchResponseDto(hits, hits.size)
+        return SearchResponseDto(hits)
+    }
+
+    @PostMapping("/products/semantic-search")
+    suspend fun semanticSearch(
+        @RequestBody body: SemanticSearchRequest,
+    ): SearchResponseDto {
+        val limit = body.limit ?: DEFAULT_SEMANTIC_LIMIT
+        val minScore = body.minScore ?: 0.0
+        validateSemantic(body.query, limit, minScore)
+        val hits = searchEngine.semanticSearch(body.query, limit, minScore).map { it.toDto() }
+        return SearchResponseDto(hits)
     }
 }
 
@@ -59,4 +71,27 @@ private fun validateQuery(
     }
 }
 
+private fun validateSemantic(
+    query: String,
+    limit: Int,
+    minScore: Double,
+) {
+    semanticError(query, limit, minScore)?.let {
+        throw InvalidProductException(it)
+    }
+}
+
+private fun semanticError(
+    query: String,
+    limit: Int,
+    minScore: Double,
+): String? =
+    when {
+        query.isBlank() -> "query 'query' must not be blank"
+        limit !in 1..MAX_SEARCH_SIZE -> "query 'limit' must be in 1..$MAX_SEARCH_SIZE, got $limit"
+        minScore !in 0.0..1.0 -> "query 'minScore' must be in 0.0..1.0, got $minScore"
+        else -> null
+    }
+
 private const val MAX_SEARCH_SIZE = 100
+private const val DEFAULT_SEMANTIC_LIMIT = 10

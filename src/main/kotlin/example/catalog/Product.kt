@@ -34,6 +34,12 @@ internal interface FurnitureSearchEngine {
         category: Category? = null,
         size: Int = 20,
     ): List<SearchHit>
+
+    suspend fun semanticSearch(
+        query: String,
+        limit: Int,
+        minScore: Double,
+    ): List<SearchHit>
 }
 
 internal interface FurnitureIndexer {

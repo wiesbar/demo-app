@@ -10,7 +10,12 @@ import example.catalog.UnitOfMeasure
 
 data class SearchResponseDto(
     val hits: List<SearchHitDto>,
-    val total: Int,
+)
+
+data class SemanticSearchRequest(
+    val query: String,
+    val limit: Int? = null,
+    val minScore: Double? = null,
 )
 
 data class SearchHitDto(

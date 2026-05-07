@@ -14,3 +14,6 @@ internal data class Dimensions(
     val height: Dimension,
     val depth: Dimension,
 )
+
+internal val Int.centimeters: Dimension get() = Dimension(this, UnitOfMeasure.CENTIMETER)
+internal val Int.millimeters: Dimension get() = Dimension(this, UnitOfMeasure.MILLIMETER)

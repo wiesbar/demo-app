@@ -2,13 +2,17 @@ package example.catalog
 
 import example.web.IntegrationSpec
 import io.kotest.assertions.assertSoftly
+import io.kotest.assertions.withClue
 import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
+import org.springframework.data.elasticsearch.core.get
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates
 import org.springframework.test.web.servlet.client.RestTestClient
 import org.springframework.test.web.servlet.client.expectBody
@@ -57,6 +61,18 @@ class ProductIndexingTest(
                 .expectSearchHits(emptyList())
         }
 
+        test("should index a product with only out-of-vocab tokens and store an empty embedding") {
+            val id = "oob-product"
+            putProduct(restClient, id, oakDiningTablePayload(name = "Zxcvbn qwerty", description = "Foobar asdf jkl"))
+            template.indexOps(IndexCoordinates.of(FURNITURE_INDEX)).refresh()
+
+            withClue("missing indexed document for $id") {
+                template
+                    .get<ProductDocument>(id, IndexCoordinates.of(FURNITURE_INDEX))
+                    .shouldNotBeNull()
+            }.embedding.shouldBeEmpty()
+        }
+
         test("should return 404 when deleting twice") {
             val id = "p-twice-deleted"
             putProduct(restClient, id, oakDiningTablePayload(name = "Twice deleted", description = "delete me twice"))
@@ -79,7 +95,7 @@ class ProductIndexingTest(
                 .expectBody<Map<String, String>>()
                 .value { body ->
                     assertSoftly {
-                        with(checkNotNull(body)) {
+                        with(body.shouldNotBeNull()) {
                             this["status"] shouldBe "404"
                             this["error"] shouldBe "Not Found"
                             this["message"] shouldBe "product with id '$id' not found"

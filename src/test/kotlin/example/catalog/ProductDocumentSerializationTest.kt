@@ -10,6 +10,7 @@ import tools.jackson.module.kotlin.readValue
 class ProductDocumentSerializationTest :
     FunSpec({
         val mapper = jacksonObjectMapper()
+        val serializer = ProductSerializer(mapper, FrozenTfIdfSemanticScorer())
 
         context("should round-trip product through ProductDocument") {
             withData(
@@ -22,9 +23,9 @@ class ProductDocumentSerializationTest :
                         description = "Solid oak, seats six.",
                         dimensions =
                             Dimensions(
-                                width = Dimension(180, UnitOfMeasure.CENTIMETER),
-                                height = Dimension(75, UnitOfMeasure.CENTIMETER),
-                                depth = Dimension(90, UnitOfMeasure.CENTIMETER),
+                                width = 180.centimeters,
+                                height = 75.centimeters,
+                                depth = 90.centimeters,
                             ),
                     ),
                     Product(
@@ -34,14 +35,14 @@ class ProductDocumentSerializationTest :
                         description = "Elegant walnut dining chair.",
                         dimensions =
                             Dimensions(
-                                width = Dimension(450, UnitOfMeasure.MILLIMETER),
-                                height = Dimension(900, UnitOfMeasure.MILLIMETER),
-                                depth = Dimension(500, UnitOfMeasure.MILLIMETER),
+                                width = 450.millimeters,
+                                height = 900.millimeters,
+                                depth = 500.millimeters,
                             ),
                     ),
                 ),
             ) { product ->
-                val json = ProductSerializer(mapper).serialize(product)
+                val json = serializer.serialize(product)
                 val document = mapper.readValue<ProductDocument>(json)
                 document.toDomain(product.id) shouldBe product
             }

@@ -1,10 +1,14 @@
 package example.catalog
 
+import com.fasterxml.jackson.annotation.JsonInclude
+
 internal data class ProductDocument(
     val category: String = "",
     val name: String = "",
     val description: String = "",
     val dimensions: DimensionsDoc = DimensionsDoc(),
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    val embedding: List<Float> = emptyList(),
 ) {
     fun toDomain(id: String): Product =
         Product(

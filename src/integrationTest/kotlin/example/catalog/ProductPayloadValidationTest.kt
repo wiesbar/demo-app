@@ -3,6 +3,7 @@ package example.catalog
 import example.web.IntegrationSpec
 import io.kotest.assertions.assertSoftly
 import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
@@ -44,7 +45,7 @@ class ProductPayloadValidationTest(
                 .expectBody<Map<String, String>>()
                 .value { responseBody ->
                     assertSoftly {
-                        with(checkNotNull(responseBody)) {
+                        with(responseBody.shouldNotBeNull()) {
                             this["status"] shouldBe "400"
                             this["message"] shouldBe "dimension value must be positive, got 0"
                         }
@@ -92,7 +93,7 @@ class ProductPayloadValidationTest(
                 .expectBody<Map<String, String>>()
                 .value { responseBody ->
                     assertSoftly {
-                        with(checkNotNull(responseBody)) {
+                        with(responseBody.shouldNotBeNull()) {
                             this["status"] shouldBe "400"
                             this["message"] shouldBe "product name must not be blank"
                         }
@@ -113,7 +114,7 @@ class ProductPayloadValidationTest(
                 .expectBody<Map<String, String>>()
                 .value { responseBody ->
                     assertSoftly {
-                        with(checkNotNull(responseBody)) {
+                        with(responseBody.shouldNotBeNull()) {
                             this["status"] shouldBe "400"
                             this["message"] shouldBe "product description must not be blank"
                         }

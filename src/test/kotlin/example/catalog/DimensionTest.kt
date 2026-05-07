@@ -14,7 +14,7 @@ class DimensionTest :
                 listOf(0, -1, -100),
             ) { value ->
                 shouldThrow<InvalidProductException> {
-                    Dimension(value, UnitOfMeasure.MILLIMETER)
+                    value.millimeters
                 }.run {
                     assertSoftly {
                         message shouldBe "dimension value must be positive, got $value"
@@ -29,7 +29,7 @@ class DimensionTest :
                 nameFn = { value -> "value=$value" },
                 listOf(1, 50, 1000),
             ) { value ->
-                Dimension(value, UnitOfMeasure.CENTIMETER).value shouldBe value
+                value.centimeters.value shouldBe value
             }
         }
     })

@@ -4,6 +4,7 @@ import example.web.IntegrationSpec
 import io.kotest.assertions.assertSoftly
 import io.kotest.datatest.withData
 import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
@@ -37,7 +38,7 @@ class ProductSearchValidationTest(
                     .expectBody<Map<String, String>>()
                     .value { body ->
                         assertSoftly {
-                            with(checkNotNull(body)) {
+                            with(body.shouldNotBeNull()) {
                                 this["status"] shouldBe "400"
                                 this["message"] shouldBe expectedMessage
                             }
@@ -56,7 +57,7 @@ class ProductSearchValidationTest(
                 .expectBody<Map<String, String>>()
                 .value { body ->
                     assertSoftly {
-                        with(checkNotNull(body)) {
+                        with(body.shouldNotBeNull()) {
                             this["status"] shouldBe "404"
                             this["error"] shouldBe "Not Found"
                             this["message"] shouldBe "product with id 'does-not-exist-xyz' not found"

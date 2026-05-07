@@ -60,8 +60,8 @@ private fun productOf(
         description = description,
         dimensions =
             Dimensions(
-                width = Dimension(180, UnitOfMeasure.CENTIMETER),
-                height = Dimension(75, UnitOfMeasure.CENTIMETER),
-                depth = Dimension(90, UnitOfMeasure.CENTIMETER),
+                width = 180.centimeters,
+                height = 75.centimeters,
+                depth = 90.centimeters,
             ),
     )

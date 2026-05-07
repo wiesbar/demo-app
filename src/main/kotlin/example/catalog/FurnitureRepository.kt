@@ -46,4 +46,21 @@ internal class FurnitureRepository(
                 SearchHit(hit.content.toDomain(id), hit.score.toDouble())
             }
         }
+
+    // todo - missing feature
+    // Category filtering is not supported through this path; the HTTP contract
+    // exposes no `category` parameter for semantic search.
+    override suspend fun semanticSearch(
+        query: String,
+        limit: Int,
+        minScore: Double,
+    ): List<SearchHit> =
+        withContext(dispatcher) {
+            val nq = queryBuilder.buildKnn(query, limit, minScore) ?: return@withContext emptyList()
+            val hits = template.search<ProductDocument>(nq, coordinates)
+            hits.searchHits.map { hit ->
+                val id = checkNotNull(hit.id) { "search hit missing id" }
+                SearchHit(hit.content.toDomain(id), hit.score.toDouble())
+            }
+        }
 }
