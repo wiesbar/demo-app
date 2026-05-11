@@ -14,11 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.data.elasticsearch.core.get
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.client.RestTestClient
 import org.springframework.test.web.servlet.client.expectBody
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
+@ActiveProfiles("catalog")
 class ProductIndexingTest(
     @Autowired private val restClient: RestTestClient,
     @Autowired private val template: ElasticsearchOperations,

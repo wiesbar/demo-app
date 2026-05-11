@@ -5,9 +5,7 @@ import org.springframework.boot.ApplicationRunner
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.data.elasticsearch.core.document.Document
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates
-import org.springframework.stereotype.Component
 
-@Component
 internal class IndexInitializer(
     private val template: ElasticsearchOperations,
 ) : ApplicationRunner {

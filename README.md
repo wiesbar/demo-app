@@ -14,6 +14,13 @@ Use the Gradle wrapper (`./gradlew` on Unix/Git Bash, `gradlew.bat` on Windows c
 ./gradlew check         # tests + ktlint + detekt + kover (requires Docker)
 ```
 
+### Dependency management
+
+All plugin and library versions are declared in the Gradle version catalog at `gradle/libs.versions.toml`. 
+The Spring Boot, Kotest, and Testcontainers versions are applied via BOMs imported with Gradle's native `platform(...)` mechanism in `build.gradle.kts`, 
+so most coordinates inside `dependencies { }` are unversioned. 
+The legacy `io.spring.dependency-management` plugin is not used.
+
 ## HTTP API
 
 | Method | Path                          | Description                                                                |
@@ -30,6 +37,22 @@ Errors are returned as a JSON body of shape `{ "status", "error", "message" }`. 
 - **400 Bad Request** — invalid input from a client (calculator parse error, invalid product payload, blank required field, unparseable JSON, blank `q`/`query`, `size`/`limit` out of range, `minScore` out of range).
 - **404 Not Found** — `DELETE /products/{id}` for an id that is not in the index.
 - **500 Internal Server Error** — anything else, including framework-level errors such as using the wrong HTTP method on `/calculate` or Elasticsearch connectivity failures.
+
+## Profiles
+
+The application is split across two Spring profiles, each gating a self-contained feature set:
+
+- `calculator` — registers the `POST /calculate` endpoint and the underlying `ArithmeticExpressionCalculator` bean.
+- `catalog` — registers the `/products/**` endpoints, the furniture repository / serializer / query builder / semantic scorer / index initializer beans, and the Spring Boot Elasticsearch autoconfigurations (`ElasticsearchClientAutoConfiguration`, `ElasticsearchRestClientAutoConfiguration`, `ElasticsearchRestHealthContributorAutoConfiguration`, `DataElasticsearchAutoConfiguration`, `DataElasticsearchRepositoriesAutoConfiguration`). With this profile inactive, Elasticsearch is not contacted at all.
+
+Both profiles are active by default via `spring.profiles.default=calculator,catalog` in `application.yaml`. To disable one, set `SPRING_PROFILES_ACTIVE` explicitly:
+
+```sh
+SPRING_PROFILES_ACTIVE=catalog   ./gradlew bootRun   # /calculate is disabled
+SPRING_PROFILES_ACTIVE=calculator ./gradlew bootRun  # /products/** is disabled, no ES required
+```
+
+`GET /` (health check) is registered on `HealthController` without a profile gate, so it responds regardless of which profiles are active. Disabled endpoints are not registered, so requests against them are unmapped and fall through to the catch-all `GlobalExceptionHandler` as HTTP 500 (not 404) — matching the framework-error mapping documented above.
 
 ## Arithmetic expression calculator
 

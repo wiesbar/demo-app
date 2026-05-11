@@ -1,11 +1,26 @@
 spring:
   application:
     name: calculator
+  profiles:
+    default: calculator,catalog
   web:
     error:
       whitelabel:
         enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchClientAutoConfiguration
+      - org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchRestClientAutoConfiguration
+      - org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchAutoConfiguration
+      - org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchRepositoriesAutoConfiguration
   elasticsearch:
     uris: ${ELASTICSEARCH_URI:http://localhost:9200}
     connection-timeout: 2s
     socket-timeout: 5s
+---
+spring:
+  config:
+    activate:
+      on-profile: catalog
+  autoconfigure:
+    exclude: []

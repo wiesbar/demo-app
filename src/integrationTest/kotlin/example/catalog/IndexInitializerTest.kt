@@ -11,10 +11,12 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates
 import org.springframework.data.elasticsearch.core.query.Query
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.client.RestTestClient
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureRestTestClient
+@ActiveProfiles("catalog")
 class IndexInitializerTest internal constructor(
     @Autowired private val restClient: RestTestClient,
     @Autowired private val template: ElasticsearchOperations,

@@ -5,6 +5,7 @@ import example.catalog.FurnitureIndexer
 import example.catalog.FurnitureSearchEngine
 import example.catalog.InvalidProductException
 import example.catalog.ProductNotFoundException
+import org.springframework.context.annotation.Profile
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
+@Profile("catalog")
 class CatalogController internal constructor(
     private val indexer: FurnitureIndexer,
     private val searchEngine: FurnitureSearchEngine,
