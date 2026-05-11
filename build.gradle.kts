@@ -45,6 +45,7 @@ dependencies {
     implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
+    implementation(libs.kotlinLogging)
 
     developmentOnly(platform(libs.spring.boot.bom))
     developmentOnly("org.springframework.boot:spring-boot-devtools")

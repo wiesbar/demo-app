@@ -3,6 +3,7 @@ package example.web
 import example.calculator.InvalidArithmeticExpressionException
 import example.catalog.InvalidProductException
 import example.catalog.ProductNotFoundException
+import example.otp.InvalidOtpRequestException
 import kotlinx.coroutines.CancellationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -19,6 +20,9 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidProductException::class)
     internal fun handleInvalidProduct(ex: InvalidProductException): ErrorBody = badRequest(ex.message)
+
+    @ExceptionHandler(InvalidOtpRequestException::class)
+    internal fun handleInvalidOtpRequest(ex: InvalidOtpRequestException): ErrorBody = badRequest(ex.message)
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleUnreadableBody(ex: HttpMessageNotReadableException): ErrorBody {

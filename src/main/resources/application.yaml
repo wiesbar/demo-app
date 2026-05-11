@@ -1,8 +1,8 @@
 spring:
   application:
-    name: calculator
+    name: demo-application
   profiles:
-    default: calculator,catalog
+    default: calculator,catalog,one-time-password
   web:
     error:
       whitelabel:
@@ -17,6 +17,10 @@ spring:
     uris: ${ELASTICSEARCH_URI:http://localhost:9200}
     connection-timeout: 2s
     socket-timeout: 5s
+one-time-password:
+  length: 6
+  max-attempts: 3
+  expire-time: 5m
 ---
 spring:
   config:
