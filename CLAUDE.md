@@ -8,6 +8,7 @@ Spring Boot 4.0.5 + Kotlin 2.2.21 on JDK 21, built with Gradle (Kotlin DSL).
 All plugin and library versions are declared in the Gradle version catalog at `gradle/libs.versions.toml`; 
 Spring Boot, Kotest, and Testcontainers are applied as BOMs via Gradle's native `platform(...)` mechanism (no `io.spring.dependency-management` plugin). 
 Uses Spring Boot's new `spring-boot-starter-webmvc` (servlet MVC) and Jackson via `tools.jackson.module:jackson-module-kotlin` (Jackson 3.x coordinates — not `com.fasterxml.jackson`). 
+Annotations remain on the legacy `com.fasterxml.jackson.annotation.*` coordinate because Jackson 3.1.0 still ships `JsonProperty` / `JsonInclude` / `JsonUnwrapped` only via the transitively-pulled `com.fasterxml.jackson.core:jackson-annotations:2.21` artifact and has no `tools.jackson.annotation` package — switch the imports once a future Jackson 3 release relocates them. 
 Persistence/search uses Spring Data Elasticsearch with the Elastic Java client 8.x; integration tests spin up a real Elasticsearch via the Testcontainers `elasticsearch` module.
 
 ## Commands

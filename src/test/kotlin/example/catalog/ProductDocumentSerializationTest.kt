@@ -47,4 +47,16 @@ class ProductDocumentSerializationTest :
                 document.toDomain(product.id) shouldBe product
             }
         }
+
+        test("should omit empty embedding via JsonInclude(NON_EMPTY)") {
+            val doc = ProductDocument(category = "TABLE", name = "n", description = "d")
+            val tree = mapper.readTree(mapper.writeValueAsString(doc))
+            tree.has("embedding") shouldBe false
+        }
+
+        test("should keep non-empty embedding in JSON") {
+            val doc = ProductDocument(category = "TABLE", name = "n", description = "d", embedding = listOf(0.1f, 0.2f))
+            val tree = mapper.readTree(mapper.writeValueAsString(doc))
+            tree.has("embedding") shouldBe true
+        }
     })
