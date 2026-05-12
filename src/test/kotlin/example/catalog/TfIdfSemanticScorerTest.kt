@@ -7,7 +7,6 @@ import io.kotest.matchers.doubles.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import kotlin.math.sqrt
 
-@Suppress("MagicNumber")
 class TfIdfSemanticScorerTest :
     FunSpec({
         val scorer: SemanticScorer = FrozenTfIdfSemanticScorer()
@@ -87,7 +86,6 @@ private fun cosine(
     return if (na == 0.0 || nb == 0.0) 0.0 else dot / (na * nb)
 }
 
-@Suppress("MagicNumber")
 private fun product(
     id: String,
     category: Category,

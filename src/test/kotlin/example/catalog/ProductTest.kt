@@ -6,7 +6,6 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.datatest.withData
 import io.kotest.matchers.shouldBe
 
-@Suppress("MagicNumber")
 class ProductTest :
     FunSpec({
         context("should reject blank fields") {
@@ -47,7 +46,6 @@ private data class BlankFieldCase(
     val build: () -> Product,
 )
 
-@Suppress("MagicNumber")
 private fun productOf(
     id: String = "p-1",
     name: String = "Oak table",

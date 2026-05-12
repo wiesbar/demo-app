@@ -14,7 +14,6 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
-@Suppress("MagicNumber")
 class DefaultPasswordRepositoryTest :
     FunSpec({
         val clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z"))

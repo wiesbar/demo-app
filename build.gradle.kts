@@ -106,6 +106,18 @@ kover {
             excludedSourceSets.addAll("integrationTest")
         }
     }
+    reports {
+        verify {
+            rule {
+                minBound(90)
+            }
+        }
+    }
+}
+
+detekt {
+    buildUponDefaultConfig = true
+    config.from(files("detekt-config.yml"))
 }
 
 tasks.withType<Detekt>().configureEach {

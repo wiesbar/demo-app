@@ -1,0 +1,21 @@
+build:
+  maxIssues: 0
+
+config:
+  validation: true
+
+processors:
+  active: true
+
+console-reports:
+  active: true
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 20
+
+style:
+  MagicNumber:
+    active: true
+    excludes: ['**/*Test.kt']

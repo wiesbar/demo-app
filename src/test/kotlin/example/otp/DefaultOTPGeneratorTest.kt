@@ -7,7 +7,6 @@ import io.kotest.matchers.string.shouldHaveLength
 import io.kotest.matchers.string.shouldMatch
 import kotlin.random.Random
 
-@Suppress("MagicNumber")
 class DefaultOTPGeneratorTest :
     FunSpec({
         test("generates OTP of default length 6 from A-Z") {

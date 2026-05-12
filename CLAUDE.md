@@ -25,7 +25,7 @@ Use the Gradle wrapper. On Windows bash, `./gradlew` works; `gradlew.bat` is als
 - Filter by Kotest test name: `./gradlew test --tests "*should evaluate valid expression*"` (wildcards required — Kotest test names are strings, not method names)
 - Lint / format: `./gradlew ktlintCheck` / `./gradlew ktlintFormat`
 - Static analysis: `./gradlew detekt`
-- Coverage: `./gradlew koverHtmlReport` (HTML under `build/reports/kover/`) or `./gradlew koverVerify`
+- Coverage: `./gradlew koverHtmlReport` (HTML under `build/reports/kover/`) or `./gradlew koverVerify` (fails below 90% line coverage).
 - `./gradlew check` runs unit tests + integration tests + ktlint + detekt + kover together. Run `./gradlew ktlintFormat check` so formatting fixes are applied before verification.
 
 Kotlin is compiled with `-Xjsr305=strict` and `-Xannotation-default-target=param-property`; 

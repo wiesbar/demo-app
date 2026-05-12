@@ -11,7 +11,6 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
-@Suppress("MagicNumber")
 class OTPServiceTest :
     FunSpec({
         context("generate") {

@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
 
-@Suppress("MagicNumber")
 class ProductDocumentSerializationTest :
     FunSpec({
         val mapper = jacksonObjectMapper()
