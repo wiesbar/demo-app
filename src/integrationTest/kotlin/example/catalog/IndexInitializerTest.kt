@@ -4,7 +4,6 @@ import example.web.IntegrationSpec
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.shouldBe
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.DefaultApplicationArguments
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
@@ -36,7 +35,7 @@ class IndexInitializerTest internal constructor(
             ops.exists() shouldBe true
             val countBefore = template.count(Query.findAll(), coordinates)
 
-            initializer.run(DefaultApplicationArguments())
+            initializer.initialize()
             template.indexOps(coordinates).refresh()
 
             ops.exists() shouldBe true

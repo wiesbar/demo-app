@@ -1,15 +1,13 @@
 package example.catalog
 
-import org.springframework.boot.ApplicationArguments
-import org.springframework.boot.ApplicationRunner
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.data.elasticsearch.core.document.Document
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates
 
 internal class IndexInitializer(
     private val template: ElasticsearchOperations,
-) : ApplicationRunner {
-    override fun run(args: ApplicationArguments) {
+) {
+    fun initialize() {
         val ops = template.indexOps(IndexCoordinates.of(FURNITURE_INDEX))
         if (!ops.exists()) {
             ops.create(emptyMap(), Document.parse(FURNITURE_MAPPING_JSON))

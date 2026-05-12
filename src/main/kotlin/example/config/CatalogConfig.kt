@@ -7,6 +7,7 @@ import example.catalog.ProductQueryBuilder
 import example.catalog.ProductSerializer
 import example.catalog.SemanticScorer
 import kotlinx.coroutines.Dispatchers
+import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
@@ -37,4 +38,8 @@ internal class CatalogConfig {
 
     @Bean
     internal fun indexInitializer(template: ElasticsearchOperations) = IndexInitializer(template)
+
+    @Bean
+    internal fun furnitureIndexInitializerRunner(initializer: IndexInitializer): ApplicationRunner =
+        ApplicationRunner { initializer.initialize() }
 }
