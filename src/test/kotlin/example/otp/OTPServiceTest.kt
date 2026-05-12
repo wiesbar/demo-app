@@ -77,7 +77,12 @@ private class Fixture {
     val sms = SMSServiceMock()
     val clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z"))
     private var nextOtp = 'A'
-    val service = OTPService(sms, { (nextOtp++).toString() }, DefaultPasswordRepository(clock = clock))
+    val service =
+        OTPService(
+            sms,
+            { (nextOtp++).toString() },
+            DefaultPasswordRepository(maxAttempts = 3, otpExpireTime = 5.minutes, clock = clock),
+        )
 }
 
 private data class GenerateCase(

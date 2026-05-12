@@ -5,8 +5,8 @@ import kotlin.time.ExperimentalTime
 @OptIn(ExperimentalTime::class)
 internal class OTPService(
     private val sms: SMSService,
-    private val otpGenerator: OTPGenerator = DefaultOTPGenerator(),
-    private val passwords: PasswordRepository = DefaultPasswordRepository(),
+    private val otpGenerator: OTPGenerator,
+    private val passwords: PasswordRepository,
 ) {
     fun generate(userId: String) {
         val otp = otpGenerator.generate()

@@ -4,7 +4,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-internal class LoggingSmsService : SMSService {
+internal class NoOpSmsService : SMSService {
     override fun sendOTP(
         userId: String,
         password: String,

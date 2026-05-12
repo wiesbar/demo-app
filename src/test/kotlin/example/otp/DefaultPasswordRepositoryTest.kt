@@ -17,21 +17,25 @@ import kotlin.time.Instant
 @Suppress("MagicNumber")
 class DefaultPasswordRepositoryTest :
     FunSpec({
-        test("consumeAttempt returns false when no entry stored") {
-            val repo = DefaultPasswordRepository(clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z")))
+        val clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z"))
+        val repo =
+            DefaultPasswordRepository(
+                maxAttempts = 3,
+                otpExpireTime = 5.minutes,
+                clock = clock,
+            )
 
+        test("consumeAttempt returns false when no entry stored") {
             repo.consumeAttempt("some-user", "A") shouldBe false
         }
 
         test("store then consumeAttempt with correct otp returns true") {
-            val repo = DefaultPasswordRepository(clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z")))
             repo.store("some-user", "A")
 
             repo.consumeAttempt("some-user", "A") shouldBe true
         }
 
         test("store then consumeAttempt with wrong otp returns false") {
-            val repo = DefaultPasswordRepository(clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z")))
             repo.store("some-user", "A")
 
             repo.consumeAttempt("some-user", "wrong") shouldBe false
@@ -41,7 +45,8 @@ class DefaultPasswordRepositoryTest :
             val repo =
                 DefaultPasswordRepository(
                     maxAttempts = 2,
-                    clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z")),
+                    otpExpireTime = 5.minutes,
+                    clock = clock,
                 )
             repo.store("some-user", "A")
             repo.consumeAttempt("some-user", "wrong")
@@ -57,7 +62,8 @@ class DefaultPasswordRepositoryTest :
             val repo =
                 DefaultPasswordRepository(
                     maxAttempts = 2,
-                    clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z")),
+                    otpExpireTime = 5.minutes,
+                    clock = clock,
                 )
             repo.store("some-user", "A")
 
@@ -67,8 +73,6 @@ class DefaultPasswordRepositoryTest :
         }
 
         test("consumeAttempt returns false once otpExpireTime has elapsed") {
-            val clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z"))
-            val repo = DefaultPasswordRepository(otpExpireTime = 5.minutes, clock = clock)
             repo.store("some-user", "A")
             clock.advance(5.minutes)
 
@@ -76,8 +80,6 @@ class DefaultPasswordRepositoryTest :
         }
 
         test("consumeAttempt returns true just before expiry") {
-            val clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z"))
-            val repo = DefaultPasswordRepository(otpExpireTime = 5.minutes, clock = clock)
             repo.store("some-user", "A")
             clock.advance(5.minutes - 1.seconds)
 
@@ -88,7 +90,8 @@ class DefaultPasswordRepositoryTest :
             val repo =
                 DefaultPasswordRepository(
                     maxAttempts = 2,
-                    clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z")),
+                    otpExpireTime = 5.minutes,
+                    clock = clock,
                 )
             repo.store("user-a", "A")
             repo.store("user-b", "B")
@@ -99,8 +102,6 @@ class DefaultPasswordRepositoryTest :
         }
 
         test("expiry is tracked independently per user") {
-            val clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z"))
-            val repo = DefaultPasswordRepository(otpExpireTime = 5.minutes, clock = clock)
             repo.store("user-a", "A")
             clock.advance(2.minutes)
             repo.store("user-b", "B")
@@ -115,8 +116,8 @@ class DefaultPasswordRepositoryTest :
                 val iterations = 500
                 val parallelCalls = 10
                 val maxAttempts = 5
-                val clock = MutableClock(Instant.parse("2026-01-01T00:00:00Z"))
-                val repo = DefaultPasswordRepository(maxAttempts = maxAttempts, clock = clock)
+                val repo =
+                    DefaultPasswordRepository(maxAttempts = maxAttempts, otpExpireTime = 5.minutes, clock = clock)
                 (1..iterations).forEach { iteration ->
                     val userId = "some-user-$iteration"
                     repo.store(userId, "A")

@@ -4,7 +4,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Clock
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -23,8 +22,8 @@ internal interface PasswordRepository {
 // todo - temporary implementation
 @OptIn(ExperimentalTime::class)
 internal class DefaultPasswordRepository(
-    private val maxAttempts: Int = 3,
-    private val otpExpireTime: Duration = 5.minutes,
+    private val maxAttempts: Int,
+    private val otpExpireTime: Duration,
     private val clock: Clock = Clock.System,
 ) : PasswordRepository {
     private val entries = ConcurrentHashMap<String, OtpEntry>()

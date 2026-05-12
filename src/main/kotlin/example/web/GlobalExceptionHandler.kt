@@ -4,6 +4,7 @@ import example.calculator.InvalidArithmeticExpressionException
 import example.catalog.InvalidProductException
 import example.catalog.ProductNotFoundException
 import example.otp.InvalidOtpRequestException
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -12,6 +13,10 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 
 private typealias ErrorBody = ResponseEntity<Map<String, String?>>
+
+private val logger = KotlinLogging.logger {}
+
+private const val GENERIC_ERROR_MESSAGE = "Internal Server Error"
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
@@ -41,7 +46,8 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleGeneralError(ex: Exception): ErrorBody {
-        val body = mapOf("status" to "500", "error" to "Internal Server Error", "message" to ex.message)
+        logger.error(ex) { "Unhandled exception reached GlobalExceptionHandler" }
+        val body = mapOf("status" to "500", "error" to GENERIC_ERROR_MESSAGE, "message" to GENERIC_ERROR_MESSAGE)
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body)
     }
 }

@@ -25,7 +25,7 @@ class UnsupportedOperationsTest(
                         mapOf(
                             "status" to "500",
                             "error" to "Internal Server Error",
-                            "message" to "Request method 'GET' is not supported",
+                            "message" to "Internal Server Error",
                         ),
                     )
                 },
