@@ -1,8 +1,5 @@
 package example.otp
 
-import kotlin.time.ExperimentalTime
-
-@OptIn(ExperimentalTime::class)
 internal class OTPService(
     private val sms: SMSService,
     private val otpGenerator: OTPGenerator,
@@ -10,8 +7,8 @@ internal class OTPService(
 ) {
     fun generate(userId: String) {
         val otp = otpGenerator.generate()
-        passwords.store(userId, otp)
         sms.sendOTP(userId, otp)
+        passwords.store(userId, otp)
     }
 
     fun verify(
