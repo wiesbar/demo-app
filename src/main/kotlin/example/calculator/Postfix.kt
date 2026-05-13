@@ -8,9 +8,6 @@ private class Postfix(
     private val values = ArrayDeque<Result>()
 
     fun calculate(): Double {
-        if (expression.isEmpty()) {
-            throw InvalidArithmeticExpressionException("Invalid empty expression.")
-        }
         for (token in expression) {
             when (token) {
                 is Operand -> values.addLast(Value(token))
@@ -18,13 +15,17 @@ private class Postfix(
                 is BinaryOperator -> token.calculate()
             }
         }
-        if (values.size != 1) {
-            throw InvalidArithmeticExpressionException(
+        return calculatedValue()
+    }
+
+    private fun calculatedValue(): Double =
+        when (values.size) {
+            0 -> throw InvalidArithmeticExpressionException("Invalid empty expression.")
+            1 -> values.last().value
+            else -> throw InvalidArithmeticExpressionException(
                 "Unexpected operand at position '${values.last().positionInExpression}' in expression.",
             )
         }
-        return values.last().value
-    }
 
     private fun UnaryOperator.Negate.calculate() {
         val value =
