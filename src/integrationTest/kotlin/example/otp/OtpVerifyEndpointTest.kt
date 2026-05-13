@@ -16,6 +16,9 @@ import org.springframework.test.web.servlet.client.RestTestClient
     properties = [
         "one-time-password.length=4",
         "one-time-password.max-attempts=2",
+        "one-time-password.rate-limit.generate.short.limit=1000",
+        "one-time-password.rate-limit.generate.long.limit=1000",
+        "one-time-password.rate-limit.verify.long.limit=1000",
     ],
 )
 @AutoConfigureRestTestClient

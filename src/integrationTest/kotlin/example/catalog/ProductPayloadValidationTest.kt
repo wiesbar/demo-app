@@ -5,6 +5,7 @@ import io.kotest.assertions.assertSoftly
 import io.kotest.extensions.spring.SpringExtension
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient
 import org.springframework.boot.test.context.SpringBootTest
@@ -69,6 +70,7 @@ class ProductPayloadValidationTest(
                   }
                 }
                 """.trimIndent()
+            val expected = """Cannot deserialize value of type `example.catalog.UnitOfMeasure` from String "Inches""""
             restClient
                 .put()
                 .uri("/products/p-units")
@@ -77,9 +79,16 @@ class ProductPayloadValidationTest(
                 .exchange()
                 .expectStatus()
                 .isBadRequest
-                .expectBody()
-                .jsonPath("$.status")
-                .isEqualTo("400")
+                .expectBody<Map<String, String>>()
+                .value { responseBody ->
+                    assertSoftly {
+                        with(responseBody.shouldNotBeNull()) {
+                            this["status"] shouldBe "400"
+                            this["error"] shouldBe "Bad Request"
+                            this["message"] shouldStartWith expected
+                        }
+                    }
+                }
         }
 
         test("should return 400 when name is blank") {
@@ -97,6 +106,7 @@ class ProductPayloadValidationTest(
                     assertSoftly {
                         with(responseBody.shouldNotBeNull()) {
                             this["status"] shouldBe "400"
+                            this["error"] shouldBe "Bad Request"
                             this["message"] shouldBe "product name must not be blank"
                         }
                     }
@@ -118,6 +128,7 @@ class ProductPayloadValidationTest(
                     assertSoftly {
                         with(responseBody.shouldNotBeNull()) {
                             this["status"] shouldBe "400"
+                            this["error"] shouldBe "Bad Request"
                             this["message"] shouldBe "product description must not be blank"
                         }
                     }

@@ -1,4 +1,5 @@
 import io.gitlab.arturbosch.detekt.Detekt
+import java.time.Duration
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -46,6 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation(libs.kotlinLogging)
+    implementation(libs.caffeine)
 
     developmentOnly(platform(libs.spring.boot.bom))
     developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -80,6 +82,10 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
+tasks.named<Test>("test") {
+    timeout.set(Duration.ofMinutes(3))
+}
+
 kotlin.target.compilations {
     val main = getByName("main")
     val test = getByName("test")
@@ -94,6 +100,7 @@ tasks.register<Test>("integrationTest") {
     testClassesDirs = sourceSets["integrationTest"].output.classesDirs
     classpath = sourceSets["integrationTest"].runtimeClasspath
     shouldRunAfter(tasks.test)
+    timeout.set(Duration.ofMinutes(10))
 }
 
 tasks.named("check") {

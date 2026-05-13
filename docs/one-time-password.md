@@ -50,7 +50,7 @@ All types in `example.otp` are `internal` to keep Spring/HTTP concerns out of th
 |---------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `OTPService`                    | Application service. `generate(userId)` produces an OTP, stores it, and sends it. `verify(userId, otp)` delegates to `PasswordRepository.consumeAttempt`. |
 | `OTPGenerator` / `DefaultOTPGenerator` | `fun interface OTPGenerator { fun generate(): String }`. The production implementation produces a 6-character string from `'A'..'Z'`, drawn with `SecureRandom().asKotlinRandom()`. Configurable `length`, `allowedChars`, and `random`. |
-| `PasswordRepository` / `DefaultPasswordRepository` | In-memory `ConcurrentHashMap<String, OtpEntry>`. Each entry holds the OTP, an `expiresAt: Instant` (`kotlin.time.Instant`), and an `AtomicInteger attemptsLeft`. Time is read from a pluggable `kotlin.time.Clock`; production wires `Clock.System`. |
+| `PasswordRepository` / `DefaultPasswordRepository` | In-memory Caffeine `Cache<String, OtpEntry>` with a custom `Expiry` and `Ticker` both driven by the injected `kotlin.time.Clock`. Each entry holds the OTP, an `expiresAt: Instant` (`kotlin.time.Instant`), and an `AtomicInteger attemptsLeft`. Production wires `Clock.System`. |
 | `SMSService` / `LoggingSmsService` | The delivery port. The production implementation only logs `"Sending one time password to user '<userId>'"` and does **not** send any real SMS. The OTP value itself is not logged. |
 | `InvalidOtpRequestException`    | `RuntimeException` thrown by `OtpController` validation. `GlobalExceptionHandler` maps it to HTTP 400.                                                 |
 
@@ -93,7 +93,9 @@ A stored OTP entry is removed from the in-memory map in any of the following cas
 - **Attempts exhausted**: on the call that decrements the counter to zero (`before <= 1` in `decrementAndCheck`), the entry is removed regardless of whether the supplied OTP matched.
 - **Fresh `store`**: calling `generate` for a `userId` that already has a stored entry overwrites it with a brand-new OTP, expiry, and full attempts counter.
 
-Eviction is not driven by a background sweeper; it happens lazily on the next `verify` for the affected user (for expiry) or eagerly at decrement time (for attempts). A successful verify call also drops the entry.
+Eviction is driven by Caffeine's TTL housekeeping (its custom `Expiry` is driven by the same `Clock` the rest of the repository uses); 
+lazy checks in `consumeAttempt` remain as defense-in-depth so a verify call racing a sweep still sees the entry as expired immediately. 
+Eager removal still happens at decrement time when attempts are exhausted, and a successful verify call also drops the entry.
 
 ### Generation
 

@@ -21,6 +21,18 @@ one-time-password:
   length: 6
   max-attempts: 3
   expire-time: 5m
+  rate-limit:
+    generate:
+      short:
+        limit: 1
+        duration: 30s
+      long:
+        limit: 5
+        duration: 1h
+    verify:
+      long:
+        limit: 10
+        duration: 5m
 ---
 spring:
   config:

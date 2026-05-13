@@ -4,8 +4,10 @@ import example.calculator.InvalidArithmeticExpressionException
 import example.catalog.InvalidProductException
 import example.catalog.ProductNotFoundException
 import example.otp.InvalidOtpRequestException
+import example.otp.RateLimitExceededException
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -39,6 +41,15 @@ class GlobalExceptionHandler {
     internal fun handleNotFound(ex: ProductNotFoundException): ErrorBody {
         val body = mapOf("status" to "404", "error" to "Not Found", "message" to ex.message)
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body)
+    }
+
+    @ExceptionHandler(RateLimitExceededException::class)
+    internal fun handleRateLimited(ex: RateLimitExceededException): ErrorBody {
+        val body = mapOf("status" to "429", "error" to "Too Many Requests", "message" to "Rate limit exceeded")
+        return ResponseEntity
+            .status(HttpStatus.TOO_MANY_REQUESTS)
+            .header(HttpHeaders.RETRY_AFTER, ex.retryAfter.inWholeSeconds.toString())
+            .body(body)
     }
 
     @ExceptionHandler(CancellationException::class)

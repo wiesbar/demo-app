@@ -6,7 +6,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
-internal class MutableClock(
+class MutableClock(
     private var instant: Instant,
 ) : Clock {
     override fun now(): Instant = instant
