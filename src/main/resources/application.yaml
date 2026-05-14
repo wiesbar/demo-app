@@ -13,6 +13,12 @@ spring:
       - org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchRestClientAutoConfiguration
       - org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchAutoConfiguration
       - org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchRepositoriesAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.JdbcClientAutoConfiguration
+      - org.springframework.boot.jooq.autoconfigure.JooqAutoConfiguration
+      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
   elasticsearch:
     uris: ${ELASTICSEARCH_URI:http://localhost:9200}
     connection-timeout: 2s
@@ -21,6 +27,7 @@ one-time-password:
   length: 6
   max-attempts: 3
   expire-time: 5m
+  hash-pepper: ${OTP_HASH_PEPPER:dev-only-otp-pepper-change-me}
   rate-limit:
     generate:
       short:
@@ -39,4 +46,28 @@ spring:
     activate:
       on-profile: catalog
   autoconfigure:
-    exclude: []
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.JdbcClientAutoConfiguration
+      - org.springframework.boot.jooq.autoconfigure.JooqAutoConfiguration
+      - org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration
+---
+spring:
+  config:
+    activate:
+      on-profile: persistent-otp
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchClientAutoConfiguration
+      - org.springframework.boot.elasticsearch.autoconfigure.ElasticsearchRestClientAutoConfiguration
+      - org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchAutoConfiguration
+      - org.springframework.boot.data.elasticsearch.autoconfigure.DataElasticsearchRepositoriesAutoConfiguration
+  datasource:
+    url: ${OTP_DATASOURCE_URL:jdbc:postgresql://localhost:5432/otp}
+    username: ${OTP_DATASOURCE_USERNAME:otp}
+    password: ${OTP_DATASOURCE_PASSWORD:otp}
+  flyway:
+    enabled: true
+    locations: classpath:db/migration

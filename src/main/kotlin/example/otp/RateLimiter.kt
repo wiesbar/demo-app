@@ -2,16 +2,16 @@ package example.otp
 
 import kotlin.time.Duration
 
-internal enum class RateLimitedOperation { GENERATE, VERIFY }
+enum class RateLimitedOperation { GENERATE, VERIFY }
 
-internal interface RateLimiter {
+interface RateLimiter {
     fun tryAcquire(
         userId: String,
         operation: RateLimitedOperation,
     ): TryAcquireResult
 }
 
-internal sealed interface TryAcquireResult {
+sealed interface TryAcquireResult {
     object Acquired : TryAcquireResult
 
     data class Denied(

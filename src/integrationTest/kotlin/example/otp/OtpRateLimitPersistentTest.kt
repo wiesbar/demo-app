@@ -6,6 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.servlet.client.RestTestClient
 
 @SpringBootTest(
@@ -23,9 +25,17 @@ import org.springframework.test.web.servlet.client.RestTestClient
     ],
 )
 @AutoConfigureRestTestClient
-@ActiveProfiles("one-time-password")
+@ActiveProfiles("one-time-password", "persistent-otp")
 @Import(InMemorySmsService.TestConfig::class, MutableClockTestConfig::class, NoRetryRestTestClientConfig::class)
-internal class OtpRateLimitTest(
+internal class OtpRateLimitPersistentTest(
     @Autowired restClient: RestTestClient,
     @Autowired mutableClock: MutableClock,
-) : OtpRateLimitEndpointSpec(restClient, mutableClock)
+) : OtpRateLimitEndpointSpec(restClient, mutableClock) {
+    companion object {
+        @JvmStatic
+        @DynamicPropertySource
+        fun datasource(registry: DynamicPropertyRegistry) {
+            registerOtpDatasource(registry)
+        }
+    }
+}

@@ -12,6 +12,7 @@ internal data class OtpProperties(
     val maxAttempts: Int,
     val expireTime: Duration,
     val rateLimit: RateLimitProperties,
+    val hashPepper: String = "",
 ) {
     init {
         require(length in 1..MAX_LENGTH) {
@@ -26,17 +27,17 @@ internal data class OtpProperties(
     }
 }
 
-internal data class RateLimitProperties(
+data class RateLimitProperties(
     val generate: OperationWindows,
     val verify: OperationWindows,
 )
 
-internal data class OperationWindows(
+data class OperationWindows(
     val short: WindowSpec? = null,
     val long: WindowSpec,
 )
 
-internal data class WindowSpec(
+data class WindowSpec(
     val limit: Int,
     private val duration: Duration,
 ) {

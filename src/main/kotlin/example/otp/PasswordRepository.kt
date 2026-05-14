@@ -5,7 +5,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
-internal interface PasswordRepository {
+interface PasswordRepository {
     fun store(
         userId: String,
         otp: String,

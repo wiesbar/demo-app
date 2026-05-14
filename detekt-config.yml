@@ -14,8 +14,10 @@ complexity:
   LongMethod:
     active: true
     threshold: 20
+  TooManyFunctions:
+    excludes: ['**/config/OtpConfig.kt']
 
 style:
   MagicNumber:
     active: true
-    excludes: ['**/*Test.kt']
+    excludes: ['**/*Test.kt', '**/*Contract.kt', '**/*Spec.kt']

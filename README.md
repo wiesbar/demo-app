@@ -4,12 +4,16 @@ A small Spring Boot 4 + Kotlin service that exposes an arithmetic expression cal
 
 ## Build & run
 
-Use the Gradle wrapper (`./gradlew` on Unix/Git Bash, `gradlew.bat` on Windows cmd). A running Docker daemon is required for `bootRun`, `integrationTest`, and `check` — the integration tests start Elasticsearch via Testcontainers, and `bootRun` starts the local container declared in `compose.yaml` via `spring-boot-docker-compose`.
+Use the Gradle wrapper (`./gradlew` on Unix/Git Bash, `gradlew.bat` on Windows cmd). 
+A running Docker daemon is required for `build`, `bootRun`, `integrationTest`, and `check`: 
+the integration tests start Elasticsearch and Postgres via Testcontainers, 
+`bootRun` starts the local containers declared in `compose.yaml` (`elasticsearch` and `postgres`) via `spring-boot-docker-compose`, 
+and the build's jOOQ code-generation step (`jooqCodegen`) spins up a throwaway Postgres container to generate the jOOQ classes from the Flyway migrations.
 
 ```sh
-./gradlew build         # compile + run all checks
+./gradlew build         # compile + run all checks (requires Docker — jOOQ codegen)
 ./gradlew bootRun       # start the service (requires Docker)
-./gradlew test          # unit tests only
+./gradlew test          # unit tests only (requires Docker — jOOQ codegen)
 ./gradlew integrationTest   # integration tests only (requires Docker)
 ./gradlew check         # tests + ktlint + detekt + kover (requires Docker)
 ```
@@ -47,14 +51,22 @@ The application is split across three Spring profiles, each gating a self-contai
 
 - `calculator` — registers the `POST /calculate` endpoint and the underlying `ArithmeticExpressionCalculator` bean.
 - `catalog` — registers the `/products/**` endpoints, the furniture repository / serializer / query builder / semantic scorer / index initializer beans, and the Spring Boot Elasticsearch autoconfigurations (`ElasticsearchClientAutoConfiguration`, `ElasticsearchRestClientAutoConfiguration`, `ElasticsearchRestHealthContributorAutoConfiguration`, `DataElasticsearchAutoConfiguration`, `DataElasticsearchRepositoriesAutoConfiguration`). With this profile inactive, Elasticsearch is not contacted at all.
-- `one-time-password` — registers the `/one-time-password/**` endpoints and the OTP service / generator / repository / SMS-delivery beans.
+- `one-time-password` — registers the `/one-time-password/**` endpoints and the OTP service / generator / repository / rate-limiter / SMS-delivery beans.
 
-All three profiles are active by default via `spring.profiles.default=calculator,catalog,one-time-password` in `application.yaml`. To disable one, set `SPRING_PROFILES_ACTIVE` explicitly:
+A fourth profile, `persistent-otp`, is **opt-in** — it is not part of `spring.profiles.default` and composes with `one-time-password` (you activate both). 
+It swaps the in-memory Caffeine OTP storage and rate limiter for Postgres-backed jOOQ implementations (`JooqPasswordRepository`, `JooqRateLimiter`), 
+plus a database-authoritative `PostgresClock`, an `OtpHasher` (peppered HMAC-SHA-256 hashing at rest), and an `OtpSweeper` that periodically deletes expired rows. 
+It re-enables the JDBC / jOOQ / Flyway autoconfigurations (excluded by default) and wires a Postgres `DataSource`, 
+so it **requires a running Postgres** (and therefore Docker). With it inactive, OTP storage stays pure in-memory and no datasource is needed.
+
+The first three profiles are active by default via `spring.profiles.default=calculator,catalog,one-time-password` in `application.yaml`. 
+To disable one, set `SPRING_PROFILES_ACTIVE` explicitly:
 
 ```sh
 SPRING_PROFILES_ACTIVE=catalog            ./gradlew bootRun  # /calculate and /one-time-password/** disabled
 SPRING_PROFILES_ACTIVE=calculator         ./gradlew bootRun  # /products/** and /one-time-password/** disabled, no ES required
 SPRING_PROFILES_ACTIVE=one-time-password  ./gradlew bootRun  # /calculate and /products/** disabled, no ES required
+SPRING_PROFILES_ACTIVE=one-time-password,persistent-otp ./gradlew bootRun  # OTP only, backed by Postgres
 ```
 
 `GET /` (health check) is registered on `HealthController` without a profile gate, so it responds regardless of which profiles are active. Disabled endpoints are not registered, so requests against them are unmapped and fall through to the catch-all `GlobalExceptionHandler` as HTTP 500 (not 404) — matching the framework-error mapping documented above.
@@ -82,6 +94,11 @@ See [docs/product-catalog.md](docs/product-catalog.md) for the domain model, HTT
 
 ## One-time password
 
-The `/one-time-password/**` endpoints are backed by the `example.otp` package, which generates a 6-character OTP per `userId`, stores it in-memory with a 5-minute expiry and a 3-attempt budget, and hands it to an `SMSService` for out-of-band delivery. The production `SMSService` (`LoggingSmsService`) only writes a log line and does not contact any real SMS gateway. A failed `verify` (wrong OTP, expired, attempts exhausted, or no OTP on file) returns 401 with an empty body so the four cases are indistinguishable to the caller.
+The `/one-time-password/**` endpoints are backed by the `example.otp` package, which generates a 6-character OTP per `userId`, 
+stores it with a 5-minute expiry and a 3-attempt budget, applies per-user rate limiting, and hands the OTP to an `SMSService` for out-of-band delivery. 
+By default storage is an in-memory Caffeine cache; under the opt-in `persistent-otp` profile it is a durable Postgres-backed store where OTPs are kept as peppered HMAC-SHA-256 hashes rather than plaintext. 
+The wired `SMSService` is `NoOpSmsService`, which only writes a log line and does not contact any real SMS gateway; 
+`OtpConfig` fails fast at startup if the `prod` profile is active without a real `SMSService` bean wired in its place. 
+A failed `verify` (wrong OTP, expired, attempts exhausted, or no OTP on file) returns 401 with an empty body so the four cases are indistinguishable to the caller.
 
 See [docs/one-time-password.md](docs/one-time-password.md) for the endpoint reference, the domain layout in `example.otp`, eviction semantics, configuration, examples, and the error catalogue.

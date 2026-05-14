@@ -10,5 +10,8 @@ internal object ElasticsearchTestContainer {
             .withEnv("xpack.security.enabled", "false")
             .withEnv("discovery.type", "single-node")
             .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m")
-            .also { it.start() }
+            .also { container ->
+                container.start()
+                Runtime.getRuntime().addShutdownHook(Thread(container::stop))
+            }
 }

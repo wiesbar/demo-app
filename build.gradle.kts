@@ -1,6 +1,19 @@
 import io.gitlab.arturbosch.detekt.Detekt
 import java.time.Duration
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.jooq:jooq-codegen:3.19.31")
+        classpath("org.flywaydb:flyway-core:11.14.1")
+        classpath("org.flywaydb:flyway-database-postgresql:11.14.1")
+        classpath("org.postgresql:postgresql:42.7.10")
+        classpath("org.testcontainers:postgresql:1.21.3")
+    }
+}
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
@@ -24,7 +37,12 @@ repositories {
     mavenCentral()
 }
 
+val jooqGeneratedDir = layout.buildDirectory.dir("generated-src/jooq")
+
 sourceSets {
+    main {
+        java.srcDir(jooqGeneratedDir)
+    }
     create("integrationTest") {
         compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
         runtimeClasspath += output + compileClasspath
@@ -42,12 +60,17 @@ dependencies {
     implementation(platform(libs.spring.boot.bom))
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
     implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+    implementation("org.springframework.boot:spring-boot-starter-jooq")
+    implementation("org.springframework.boot:spring-boot-flyway")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
     implementation(libs.kotlinLogging)
     implementation(libs.caffeine)
+    implementation(libs.flyway.core)
+    runtimeOnly(libs.flyway.database.postgresql)
+    runtimeOnly(libs.postgresql)
 
     developmentOnly(platform(libs.spring.boot.bom))
     developmentOnly("org.springframework.boot:spring-boot-devtools")
@@ -56,6 +79,11 @@ dependencies {
     integrationTestImplementation(platform(libs.spring.boot.bom))
     integrationTestImplementation(platform(libs.testcontainers.bom))
     integrationTestImplementation(libs.testcontainers.elasticsearch)
+    integrationTestImplementation(libs.testcontainers.postgresql)
+    integrationTestImplementation("org.springframework.boot:spring-boot-starter-jooq")
+    integrationTestImplementation(libs.flyway.core)
+    integrationTestRuntimeOnly(libs.flyway.database.postgresql)
+    integrationTestRuntimeOnly(libs.postgresql)
 
     testImplementation(platform(libs.spring.boot.bom))
     testImplementation(platform(libs.kotest.bom))
@@ -80,6 +108,8 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // Docker 29+ rejects the docker-java default API version; pin a supported one for Testcontainers.
+    systemProperty("api.version", "1.44")
 }
 
 tasks.named<Test>("test") {
@@ -107,8 +137,90 @@ tasks.named("check") {
     dependsOn("integrationTest")
 }
 
+val jooqCodegen by tasks.registering {
+    description = "Generates jOOQ classes from the Flyway migrations against a throwaway Postgres container."
+    group = "build"
+    val migrationsDir = layout.projectDirectory.dir("src/main/resources/db/migration")
+    val outputDir = jooqGeneratedDir
+    inputs.dir(migrationsDir)
+    outputs.dir(outputDir)
+    doLast {
+        System.setProperty("api.version", "1.44")
+        org.testcontainers.containers.PostgreSQLContainer("postgres:16-alpine").use { container ->
+            container.start()
+            org.flywaydb.core.Flyway
+                .configure()
+                .dataSource(container.jdbcUrl, container.username, container.password)
+                .locations("filesystem:${migrationsDir.asFile.absolutePath}")
+                .load()
+                .migrate()
+            val configuration =
+                org.jooq.meta.jaxb
+                    .Configuration()
+                    .withJdbc(
+                        org.jooq.meta.jaxb
+                            .Jdbc()
+                            .withDriver("org.postgresql.Driver")
+                            .withUrl(container.jdbcUrl)
+                            .withUser(container.username)
+                            .withPassword(container.password),
+                    ).withGenerator(
+                        org.jooq.meta.jaxb
+                            .Generator()
+                            .withDatabase(
+                                org.jooq.meta.jaxb
+                                    .Database()
+                                    .withName("org.jooq.meta.postgres.PostgresDatabase")
+                                    .withInputSchema("public")
+                                    .withIncludes("otp_entries|otp_rate_limits|flyway_schema_history")
+                                    .withExcludes("flyway_schema_history"),
+                            ).withTarget(
+                                org.jooq.meta.jaxb
+                                    .Target()
+                                    .withPackageName("example.otp.jooq")
+                                    .withDirectory(outputDir.get().asFile.absolutePath),
+                            ),
+                    )
+            org.jooq.codegen.GenerationTool
+                .generate(configuration)
+        }
+    }
+}
+
+tasks.named("compileKotlin") {
+    dependsOn(jooqCodegen)
+}
+tasks.named("compileJava") {
+    dependsOn(jooqCodegen)
+}
+tasks.named("compileIntegrationTestKotlin") {
+    dependsOn(jooqCodegen)
+}
+
+ktlint {
+    filter {
+        exclude {
+            it.file.path
+                .replace('\\', '/')
+                .contains("/generated-src/jooq/")
+        }
+    }
+}
+
+tasks.named("runKtlintCheckOverMainSourceSet") {
+    dependsOn(jooqCodegen)
+}
+tasks.named("runKtlintFormatOverMainSourceSet") {
+    dependsOn(jooqCodegen)
+}
+
 kover {
     reports {
+        filters {
+            excludes {
+                packages("example.otp.jooq")
+            }
+        }
         verify {
             rule {
                 minBound(95)
@@ -124,6 +236,7 @@ detekt {
 
 tasks.withType<Detekt>().configureEach {
     if (name == "detekt") {
+        dependsOn(jooqCodegen)
         setSource(
             files(
                 sourceSets["main"].kotlin,
@@ -131,6 +244,11 @@ tasks.withType<Detekt>().configureEach {
                 sourceSets["integrationTest"].kotlin,
             ),
         )
+        exclude {
+            it.file.path
+                .replace('\\', '/')
+                .contains("/generated-src/jooq/")
+        }
     }
 }
 
