@@ -108,15 +108,10 @@ tasks.named("check") {
 }
 
 kover {
-    currentProject {
-        sources {
-            excludedSourceSets.addAll("integrationTest")
-        }
-    }
     reports {
         verify {
             rule {
-                minBound(90)
+                minBound(95)
             }
         }
     }
